@@ -25,12 +25,12 @@ package
 	public class Main extends BaseMain
 	{
 		private var g:SimpleGraph;
-		private var g_xmin:Number = -5;
-		private var g_xmax:Number = 5;
-		private var g_xsize:int = 400;
-		private var g_ymin:Number = -5;
-		private var g_ymax:Number = 5;
-		private var g_ysize:int = 400;
+		private var g_xmin:Number = -10;
+		private var g_xmax:Number = 10;
+		private var g_xsize:int = 630;
+		private var g_ymin:Number = -8;
+		private var g_ymax:Number = 8;
+		private var g_ysize:int = 470;
 		private var graphFunction:GraphFunction;
 		
 		private var a:Number = 1;
@@ -42,6 +42,9 @@ package
 		private var dataStyle:DataStyle = new DataStyle();
 		private var dataArray:Array;
 		
+		private var maxZoom:int = 100;
+		private var zoomFactory:Number = 0.1;
+		
 		override protected function init():void {
             if (ExternalInterface.available) {
 				ExternalInterface.addCallback("setA", setA);
@@ -51,7 +54,7 @@ package
 				ExternalInterface.addCallback("getB", getB);
 				ExternalInterface.addCallback("getC", getC);
 				ExternalInterface.addCallback("update", update);
-				ExternalInterface.addCallback("reseta", reseta);
+				ExternalInterface.addCallback("reseta", reset);
 				ExternalInterface.addCallback("f", f);
 				ExternalInterface.addCallback("doNothing", doNothing);
 			}
@@ -78,15 +81,53 @@ package
 			g.grid = false;
 			g.setTicksDistance(SimpleGraph.AXIS_X, 1);
 			g.setTicksDistance(SimpleGraph.AXIS_Y, 1);
-			graphFunction = new GraphFunction(g_xmin, g_xmax, f);
-			//g.addFunction(graphFunction, dataStyle);
-			//hasFunction = true;
+			g.setSubticksDistance(SimpleGraph.AXIS_X, 1/2);
+			g.setSubticksDistance(SimpleGraph.AXIS_Y, 1/2);
 			
-			//g.draw();
+			graphFunction = new GraphFunction(g_xmin, g_xmax, f);
+			
 			update();
 			
-			//iniciaTutorial();
-			//desenhaReta();
+			stage.addEventListener(MouseEvent.MOUSE_WHEEL, zoom);
+		}
+		
+		private function zoom(e:MouseEvent):void 
+		{
+			var tick:Number;
+			if (e.delta < 0) {
+				if (g.xmax < maxZoom * g_xmax) {
+					g.setRange(g.xmin * (1 + zoomFactory), g.xmax * (1 + zoomFactory), g.ymin * (1 + zoomFactory), g.ymax * (1 + zoomFactory));
+				}
+				if (g.xmax > maxZoom * g_xmax) {
+					g.setRange(g_xmin * maxZoom, g_xmax * maxZoom, g_ymin * maxZoom, g_ymax * maxZoom);
+				}
+				tick = getTickDistance(g.xmax);
+				g.setTicksDistance(SimpleGraph.AXIS_X, tick);
+				g.setTicksDistance(SimpleGraph.AXIS_Y, tick);
+				g.setSubticksDistance(SimpleGraph.AXIS_X, tick/2);
+				g.setSubticksDistance(SimpleGraph.AXIS_Y, tick/2);
+				update(true);
+			}else {
+				if (g.xmin < g_xmin) {
+					g.setRange(g.xmin / (1 + zoomFactory), g.xmax / (1 + zoomFactory), g.ymin / (1 + zoomFactory), g.ymax / (1 + zoomFactory));
+				}
+				if(g.xmin > g_xmin){
+					g.setRange(g_xmin, g_xmax, g_ymin, g_ymax);
+				}
+				tick = getTickDistance(g.xmax);
+				g.setTicksDistance(SimpleGraph.AXIS_X, tick);
+				g.setTicksDistance(SimpleGraph.AXIS_Y, tick);
+				g.setSubticksDistance(SimpleGraph.AXIS_X, tick/2);
+				g.setSubticksDistance(SimpleGraph.AXIS_Y, tick/2);
+				update(true);
+			}
+		}
+		
+		private function getTickDistance(xmax:Number):Number 
+		{
+			if (xmax <= 100) return Math.floor(xmax / 10);
+			else if (xmax <= 1000) return Math.floor(xmax / 100) * 10;
+			else return Math.floor(xmax / 200);
 		}
 		
 		public function doNothing ():void {
@@ -99,13 +140,7 @@ package
 			//else return -(b/a*x) -(c/a);
 		}
 		
-		public function reseta():void 
-		{
-			a = b = c = 1;
-			g.draw();
-		}
-		
-		public function update():void 
+		public function update(changeRange:Boolean = false):void 
 		{
 			if (Math.abs(b) < EPS) {
 				if (hasFunction) {
@@ -127,8 +162,15 @@ package
 					hasData = false;
 				}
 				if (!hasFunction) {
+					if (changeRange) graphFunction = new GraphFunction(g.xmin, g.xmax, f);
 					g.addFunction(graphFunction, dataStyle);
 					hasFunction = true;
+				}else {
+					if (changeRange) {
+						g.removeFunction(graphFunction);
+						graphFunction = new GraphFunction(g.xmin, g.xmax, f);
+						g.addFunction(graphFunction, dataStyle);
+					}
 				}
 			}
 			g.draw();
@@ -180,7 +222,16 @@ package
 			if (_update) update();
 		}
 		
-		
+		override public function reset(e:MouseEvent = null):void 
+		{
+			a = b = c = 1;
+			g.setRange(g_xmin, g_xmax, g_ymin, g_ymax);
+			g.setTicksDistance(SimpleGraph.AXIS_X, 1);
+			g.setTicksDistance(SimpleGraph.AXIS_Y, 1);
+			g.setSubticksDistance(SimpleGraph.AXIS_X, 1/2);
+			g.setSubticksDistance(SimpleGraph.AXIS_Y, 1/2);
+			update(true);
+		}
 		
 		
 		
