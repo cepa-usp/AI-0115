@@ -1,0 +1,4 @@
+h1. AI-0115 
+
+Aplicativo para construção de retas de acordo com a equação da reta ax + by + c = 0.
+
