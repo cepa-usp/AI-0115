@@ -27,10 +27,10 @@ package
 		private var g:SimpleGraph;
 		private var g_xmin:Number = -10;
 		private var g_xmax:Number = 10;
-		private var g_xsize:int = 630;
+		private var g_xsize:int = 595;
 		private var g_ymin:Number = -8;
 		private var g_ymax:Number = 8;
-		private var g_ysize:int = 470;
+		private var g_ysize:int = 430;
 		private var graphFunction:GraphFunction;
 		
 		private var a:Number = 1;
@@ -76,19 +76,49 @@ package
 			
 			g = new SimpleGraph(g_xmin, g_xmax, g_xsize, g_ymin, g_ymax, g_ysize);
 			addChild(g);
-			g.x = 320 - g_xsize / 2;
+			g.x = 10 + 320 - g_xsize / 2;
 			g.y = 240 - g_ysize / 2;
 			g.grid = false;
+			g.pan = true;
+			
+			g.addEventListener("initPan", initPan);
+			
 			g.setTicksDistance(SimpleGraph.AXIS_X, 1);
 			g.setTicksDistance(SimpleGraph.AXIS_Y, 1);
-			g.setSubticksDistance(SimpleGraph.AXIS_X, 1/2);
-			g.setSubticksDistance(SimpleGraph.AXIS_Y, 1/2);
+			//g.setSubticksDistance(SimpleGraph.AXIS_X, 1/2);
+			//g.setSubticksDistance(SimpleGraph.AXIS_Y, 1/2);
 			
 			graphFunction = new GraphFunction(g_xmin, g_xmax, f);
 			
 			update();
 			
-			stage.addEventListener(MouseEvent.MOUSE_WHEEL, zoom);
+			//stage.addEventListener(MouseEvent.MOUSE_WHEEL, zoom);
+		}
+		
+		private function initPan(e:Event):void 
+		{
+			stage.addEventListener(MouseEvent.MOUSE_MOVE, panning);
+			g.addEventListener("endPan", endPan);
+		}
+		
+		private function panning(e:MouseEvent):void 
+		{
+			if(hasFunction){
+				g.removeFunction(graphFunction);
+				graphFunction = new GraphFunction(g.xmin, g.xmax, f);
+				g.addFunction(graphFunction, dataStyle);
+			}
+			if (hasData) {
+				g.removeData(dataArray);
+				dataArray = [[-c/a, g.ymin], [-c/a, g.ymax]];
+				g.addData(dataArray, dataStyle);
+			}
+		}
+		
+		private function endPan(e:Event):void 
+		{
+			stage.removeEventListener(MouseEvent.MOUSE_MOVE, panning);
+			g.removeEventListener("endPan", endPan);
 		}
 		
 		private function zoom(e:MouseEvent):void 
@@ -152,7 +182,7 @@ package
 					dataArray = null;
 					hasData = false;
 				}
-				dataArray = [[-c/a, g_ymin], [-c/a, g_ymax]];
+				dataArray = [[-c/a, g.ymin], [-c/a, g.ymax]];
 				g.addData(dataArray, dataStyle);
 				hasData = true;
 			}else {
@@ -226,10 +256,10 @@ package
 		{
 			a = b = c = 1;
 			g.setRange(g_xmin, g_xmax, g_ymin, g_ymax);
-			g.setTicksDistance(SimpleGraph.AXIS_X, 1);
-			g.setTicksDistance(SimpleGraph.AXIS_Y, 1);
-			g.setSubticksDistance(SimpleGraph.AXIS_X, 1/2);
-			g.setSubticksDistance(SimpleGraph.AXIS_Y, 1/2);
+			//g.setTicksDistance(SimpleGraph.AXIS_X, 1);
+			//g.setTicksDistance(SimpleGraph.AXIS_Y, 1);
+			//g.setSubticksDistance(SimpleGraph.AXIS_X, 1/2);
+			//g.setSubticksDistance(SimpleGraph.AXIS_Y, 1/2);
 			update(true);
 		}
 		

@@ -24,7 +24,7 @@ function init () {
 	
 	var params = {};
 	params.menu = "false";
-	params.scale = "noscale";
+	params.scale = "showall";
 
 	var attributes = {};
 	attributes.id = "ai";
