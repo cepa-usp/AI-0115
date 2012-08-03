@@ -104,9 +104,8 @@ package
 		private function panning(e:MouseEvent):void 
 		{
 			if(hasFunction){
-				g.removeFunction(graphFunction);
-				graphFunction = new GraphFunction(g.xmin, g.xmax, f);
-				g.addFunction(graphFunction, dataStyle);
+				graphFunction.xmin = g.xmin;
+				graphFunction.xmax = g.xmax;
 			}
 			if (hasData) {
 				g.removeData(dataArray);
